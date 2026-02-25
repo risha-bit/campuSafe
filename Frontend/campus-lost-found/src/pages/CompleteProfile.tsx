@@ -245,9 +245,10 @@ const CompleteProfile: React.FC = () => {
             if (/electronics|ece/i.test(textAll)) branch = "Electronics and Communication";
             if (/civil/i.test(textAll)) branch = "Civil Engineering";
             if (/ai|artificial intelligence/i.test(textAll)) branch = "Artificial Intelligence";
+            if (/data science|csds/i.test(textAll)) branch = "Data Science";
 
             if (/b\.?e\.?|b\.?tech|bachelor/i.test(textAll)) course = "B.E";
-            if (/m\.?tech|master/i.test(textAll)) course = "M.Tech";
+          
             if (/mca/i.test(textAll)) course = "MCA";
             if (/mba/i.test(textAll)) course = "MBA";
 

@@ -1,24 +1,40 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
-
+import { userService } from "../services/userService";
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState<string>("");
     const [error, setError] = useState<string>("");
+    const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
     const navigate = useNavigate();
 
-    const handleLogin = (): void => {
+    const handleLogin = async (): Promise<void> => {
         if (!email.endsWith("@sjec.ac.in")) {
             setError("Invalid  Email");
             return;
         }
+        setIsLoggingIn(true);
         //Fake token for now 
         localStorage.setItem("Token:", "fake-token");
+        localStorage.setItem("currentEmail", email);
         //clear error
         setError("");
-        //Redirect
-        navigate("/Dash");
+
+        try {
+            // Check if account/profile exists and is complete
+            const data = await userService.getProfile(email);
+            if (!data.isProfileComplete) {
+                navigate("/complete-profile");
+            } else {
+                navigate("/profile");
+            }
+        } catch (err) {
+            console.log("Profile not found or incomplete, routing to complete profile");
+            navigate("/complete-profile");
+        } finally {
+            setIsLoggingIn(false);
+        }
     };
     return (
         <div className="min-h-screen relative flex items-center justify-center overflow-hidden px-4">
@@ -50,9 +66,10 @@ const Login: React.FC = () => {
 
                 <button
                     onClick={handleLogin}
-                    className="w-full  text-white p-3 sm:p-4 rounded-lg text-sm sm:text-base font-semibold bg-blue-700 transition hover:bg-white hover:text-black"
+                    disabled={isLoggingIn}
+                    className={`w-full text-white p-3 sm:p-4 rounded-lg text-sm sm:text-base font-semibold bg-blue-700 transition ${isLoggingIn ? "opacity-70 cursor-not-allowed" : "hover:bg-white hover:text-black"}`}
                 >
-                    Login
+                    {isLoggingIn ? "Verifying..." : "Login"}
                 </button>
 
                 {error && (

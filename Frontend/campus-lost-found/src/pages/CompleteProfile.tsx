@@ -101,14 +101,23 @@ const CompleteProfile: React.FC = () => {
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                        // Basic Grayscale to remove color noise from ID card backgrounds
+                        // Advanced Binarization & Contrast (Thresholding)
                         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         const data = imageData.data;
+
+                        // Increase contrast and apply a threshold to make it black text on pure white
+                        const threshold = 140; // Pixels darker than this become black, lighter become white
+
                         for (let i = 0; i < data.length; i += 4) {
-                            const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                            data[i] = avg;     // red
-                            data[i + 1] = avg; // green
-                            data[i + 2] = avg; // blue
+                            // Calculate perceived brightness
+                            const brightness = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+
+                            // High contrast Binarization
+                            const color = brightness < threshold ? 0 : 255;
+
+                            data[i] = color;     // red
+                            data[i + 1] = color; // green
+                            data[i + 2] = color; // blue
                         }
                         ctx.putImageData(imageData, 0, 0);
 
@@ -248,7 +257,7 @@ const CompleteProfile: React.FC = () => {
             if (/data science|csds/i.test(textAll)) branch = "Data Science";
 
             if (/b\.?e\.?|b\.?tech|bachelor/i.test(textAll)) course = "B.E";
-          
+
             if (/mca/i.test(textAll)) course = "MCA";
             if (/mba/i.test(textAll)) course = "MBA";
 
@@ -309,37 +318,39 @@ const CompleteProfile: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-            <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100 p-8 flex flex-col items-center">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Complete Profile</h1>
-                <p className="text-gray-500 mb-8 text-center text-sm">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8 flex flex-col items-center">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 text-center">Complete Profile</h1>
+                <p className="text-gray-500 mb-6 sm:mb-8 text-center text-sm sm:text-base">
                     {step === "upload"
                         ? "Please upload a clear picture of your SJEC ID card for automated verification."
                         : "Verify and edit the details extracted from your ID card."}
                 </p>
 
                 {step === "upload" && (
-                    <label className={`w-full flex justify-center flex-col items-center border-dashed border-2 ${loading ? 'border-gray-200 bg-gray-50' : 'border-blue-200 hover:bg-blue-50 cursor-pointer'} rounded-xl p-8 transition relative overflow-hidden`}>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            className="hidden"
-                            onChange={handleFileUpload}
-                            disabled={loading}
-                        />
-                        <div className={`text-blue-500 mb-4 h-12 w-12 ${loading ? 'bg-gray-200 text-gray-400' : 'bg-blue-100'} rounded-full flex items-center justify-center text-xl transition`}>
-                            {loading ? "⌛" : "+"}
-                        </div>
-                        <p className={`text-lg font-semibold ${loading ? 'text-gray-500' : 'text-blue-700'}`}>
-                            {loading ? "Processing Image..." : "Click to upload or scan ID"}
-                        </p>
-                        <p className="text-sm text-gray-400 mt-2">Supports JPG, PNG (Max 5MB)</p>
+                    <div className="w-full">
+                        <label className={`w-full flex justify-center flex-col items-center border-dashed border-2 ${loading ? 'border-gray-200 bg-gray-50' : 'border-blue-200 hover:bg-blue-50 cursor-pointer'} rounded-xl p-6 sm:p-8 transition relative overflow-hidden`}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                onChange={handleFileUpload}
+                                disabled={loading}
+                            />
+                            <div className={`text-blue-500 mb-4 h-12 w-12 sm:h-14 sm:w-14 ${loading ? 'bg-gray-200 text-gray-400' : 'bg-blue-100'} rounded-full flex items-center justify-center text-xl sm:text-2xl transition`}>
+                                {loading ? "⌛" : "+"}
+                            </div>
+                            <p className={`text-base sm:text-lg font-semibold text-center ${loading ? 'text-gray-500' : 'text-blue-700'}`}>
+                                {loading ? "Processing Image..." : "Click to upload or scan ID"}
+                            </p>
+                            <p className="text-xs sm:text-sm text-gray-400 mt-2 text-center">Supports JPG, PNG (Max 5MB)</p>
 
-                        {loading && (
-                            <div className="absolute bottom-0 left-0 h-1 bg-blue-500 animate-pulse w-full"></div>
-                        )}
-                    </label>
+                            {loading && (
+                                <div className="absolute bottom-0 left-0 h-1 bg-blue-500 animate-pulse w-full"></div>
+                            )}
+                        </label>
+                    </div>
                 )}
 
                 {loading && step === "upload" && progress && (
@@ -348,12 +359,12 @@ const CompleteProfile: React.FC = () => {
 
                 {step === "confirm" && scannedData && (
                     <div className="w-full">
-                        <div className="bg-gray-50 rounded-lg p-6 space-y-4 shadow-inner mb-6">
+                        <div className="bg-gray-50 rounded-lg p-5 sm:p-6 space-y-5 sm:space-y-4 shadow-inner mb-6">
 
                             {/* Display uploaded ID photo mock as face crop */}
                             {scannedData.profilePhoto && (
-                                <div className="flex justify-center mb-4">
-                                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
+                                <div className="flex justify-center mb-4 sm:mb-6">
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
                                         <img src={scannedData.profilePhoto} alt="Extracted ID" className="w-full h-full object-cover" />
                                     </div>
                                 </div>
@@ -362,7 +373,7 @@ const CompleteProfile: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Name</label>
                                 <input
-                                    className="text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
+                                    className="text-base sm:text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
                                     value={scannedData.name}
                                     onChange={e => setScannedData({ ...scannedData, name: e.target.value })}
                                 />
@@ -370,7 +381,7 @@ const CompleteProfile: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">USN</label>
                                 <input
-                                    className="text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
+                                    className="text-base sm:text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
                                     value={scannedData.usn}
                                     onChange={e => setScannedData({ ...scannedData, usn: e.target.value })}
                                 />
@@ -378,16 +389,16 @@ const CompleteProfile: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Branch</label>
                                 <input
-                                    className="text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
+                                    className="text-base sm:text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
                                     value={scannedData.branch}
                                     onChange={e => setScannedData({ ...scannedData, branch: e.target.value })}
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Course</label>
                                     <input
-                                        className="text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
+                                        className="text-base sm:text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
                                         value={scannedData.course}
                                         onChange={e => setScannedData({ ...scannedData, course: e.target.value })}
                                     />
@@ -396,7 +407,7 @@ const CompleteProfile: React.FC = () => {
                                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Year</label>
                                     <input
                                         type="number"
-                                        className="text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
+                                        className="text-base sm:text-lg font-medium text-gray-800 bg-transparent border-b border-gray-300 w-full focus:outline-none focus:border-blue-500 pb-1"
                                         value={scannedData.year}
                                         onChange={e => setScannedData({ ...scannedData, year: parseInt(e.target.value) || 1 })}
                                     />
@@ -404,17 +415,17 @@ const CompleteProfile: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                             <button
                                 onClick={() => setStep("upload")}
-                                className="flex-1 px-4 py-3 bg-white text-gray-600 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
+                                className="w-full sm:flex-1 px-4 py-3 bg-white text-gray-600 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
                             >
                                 Retake
                             </button>
                             <button
                                 onClick={handleConfirm}
                                 disabled={loading}
-                                className={`flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`w-full sm:flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
                                 {loading ? "Saving..." : "Confirm & Save"}
                             </button>

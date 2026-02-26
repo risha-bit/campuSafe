@@ -148,8 +148,8 @@ const ItemDetail: React.FC = () => {
 
                             <div className="mb-8">
                                 <h3 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Description</h3>
-                                <p className="text-gray-600 leading-relaxed bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
-                                    A <strong>{item.name}</strong> was found at <strong>{item.location}</strong> on <strong>{item.date}</strong>. Detailed condition and specific attributes have been documented by the finder, but are hidden from the public to verify the actual owner. If this item belongs to you, please begin the verification process below.
+                                <p className="text-gray-600 leading-relaxed bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 whitespace-pre-wrap">
+                                    {item.description || `A ${item.name} was found at ${item.location} on ${item.date}. Detailed condition and specific attributes have been documented by the finder, but are hidden from the public to verify the actual owner. If this item belongs to you, please begin the verification process below.`}
                                 </p>
                             </div>
 

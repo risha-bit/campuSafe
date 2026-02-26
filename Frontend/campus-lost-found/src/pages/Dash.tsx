@@ -10,6 +10,7 @@ export interface DummyItem {
     location: string;
     status: FilterStatus;
     date: string;
+    description: string;
     secretQuestion1?: string;
     secretAnswer1?: string;
     secretQuestion2?: string;
@@ -198,14 +199,25 @@ const Dash: React.FC = () => {
                                 key={item.id}
                                 onClick={() => navigate(`/item/${item.id}`)}
                                 className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer">
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="text-lg font-semibold text-gray-800 line-clamp-1" title={item.name}>
-                                        {item.name}
-                                    </h3>
-                                    <span className={`flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap border ${getStatusStyles(item.status)}`}>
-                                        {renderStatusIndicator(item.status)}
-                                        {item.status}
-                                    </span>
+                                <div className="flex flex-col gap-3">
+                                    {item.image ? (
+                                        <div className="w-full h-32 rounded-lg overflow-hidden bg-gray-100 mb-2">
+                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-32 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center mb-2 border border-gray-200">
+                                            <img src={`https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(item.name)}&backgroundColor=e2e8f0`} alt={item.name} className="w-16 h-16 opacity-75" />
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="text-lg font-semibold text-gray-800 line-clamp-1" title={item.name}>
+                                            {item.name}
+                                        </h3>
+                                        <span className={`flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap border ${getStatusStyles(item.status)}`}>
+                                            {renderStatusIndicator(item.status)}
+                                            {item.status}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="space-y-2 mt-4 text-sm text-gray-600">
                                     <div className="flex items-start gap-2">

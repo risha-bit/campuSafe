@@ -49,7 +49,7 @@ const Profile: React.FC = () => {
             {/* Top Navigation / Header Area if needed */}
             <div className="w-full max-w-2xl flex justify-between items-center mb-8">
                 <button
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate('/complete-profile')}
                     className="text-blue-800 hover:underline flex items-center gap-2"
                 >
                     &larr; Back

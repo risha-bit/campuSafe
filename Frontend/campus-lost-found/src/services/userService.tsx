@@ -1,39 +1,48 @@
 import type { UserProfile } from "../types/user";
 
-// Mock data and service for user profile
-let mockUser: UserProfile = {
-    id: "1",
-    email: "24g64.minora@sjec.ac.in",
-    name: "Minora Risha Dias",
-    usn: "4SO24CS130",
-    branch: "Computer Science Engineering",
-    course: "CSE",
-    year: 2,
-    profilePhoto: "https://via.placeholder.com/150",
-    postsCount: 5,
-    claimsCount: 2,
-    isProfileComplete: false, // Forces all users to complete ID scan check on first load
-};
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export const userService = {
     getProfile: async (email?: string): Promise<UserProfile> => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (email && email !== mockUser.email) {
-                    reject(new Error("User not found"));
-                } else {
-                    resolve(mockUser);
-                }
-            }, 500); // simulate network delay
-        });
+        if (!email) throw new Error("Email is required");
+        try {
+            const response = await fetch(`${API_URL}/users/${encodeURIComponent(email)}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch profile");
+            }
+            const data = await response.json();
+            // Map MongoDB _id to id if missing
+            if (data._id && !data.id) {
+                data.id = data._id.toString();
+            }
+            return data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     },
 
     updateProfile: async (data: Partial<UserProfile>): Promise<UserProfile> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                mockUser = { ...mockUser, ...data, isProfileComplete: true };
-                resolve(mockUser);
-            }, 1000);
-        });
+        if (!data.email) throw new Error("Email is required for update");
+        try {
+            const response = await fetch(`${API_URL}/users/${encodeURIComponent(data.email)}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) {
+                throw new Error("Failed to update profile");
+            }
+            const updatedData = await response.json();
+            if (updatedData._id && !updatedData.id) {
+                updatedData.id = updatedData._id.toString();
+            }
+            return updatedData;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 };

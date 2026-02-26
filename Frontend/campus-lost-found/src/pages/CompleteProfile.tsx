@@ -23,8 +23,7 @@ const CompleteProfile: React.FC = () => {
             try {
                 const data = await userService.getProfile(currentEmail);
                 if (data.isProfileComplete) {
-                    // Profile is already complete, redirect away from this page
-                    navigate("/profile");
+                    // Profile is already complete, but we stay on this page in case they want to re-scan
                 }
             } catch (error) {
                 // If it crashes here ("User not found"), it means they don't have an account

@@ -133,6 +133,9 @@ To modernize and secure the traditional lost and found process within campuses b
 - Multi-campus scalability  
 
 ---
+##  DEPLOYEMENT
+- FRONTEND (STATIC WEBSITE): https://campusafe-4gmd.onrender.com/ 
+- BACKEND( WEB SERVICE):https://campusafe.onrender.com/
 
 ###  Developed for VOIDHACK 2026
 - Minora Dias @SJEC (SOLO)

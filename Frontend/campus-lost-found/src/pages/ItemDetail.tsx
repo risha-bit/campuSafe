@@ -26,7 +26,13 @@ const ItemDetail: React.FC = () => {
                 pickupCode: code,
                 pickupLocation: customPickupLocation.trim()
             });
-            window.location.reload();
+            // Update the local state instead of reloading the page to prevent 404 errors on static hosts
+            setItem(prev => prev ? {
+                ...prev,
+                status: "READY_FOR_PICKUP",
+                pickupCode: code,
+                pickupLocation: customPickupLocation.trim()
+            } : null);
         } catch (e) {
             console.error(e);
             alert("Failed to accept");
@@ -40,7 +46,8 @@ const ItemDetail: React.FC = () => {
         setIsProcessingClaim(true);
         try {
             await itemService.updateItemStatus(item.id, { status: "Posted" });
-            window.location.reload();
+            // Update the local state instead of reloading the page to prevent 404 errors on static hosts
+            setItem(prev => prev ? { ...prev, status: "Posted" } : null);
         } catch (e) {
             console.error(e);
             alert("Failed to reject");

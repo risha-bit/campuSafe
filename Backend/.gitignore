@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.log
+output_test_img.txt
+temp_img.txt
+test_new_item.txt
+test_output.txt

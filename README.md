@@ -40,7 +40,8 @@ The application adopts a decoupled architecture for deployment:
 3. Create a `.env` file in the `Backend` directory and add the necessary environment variables:
    ```env
    PORT=5000
-   MONGO_URI=mongodb://localhost:27017/campusafe # Or your MongoDB Atlas URI
+   MONGO_URI=mongodb+srv://fromfromthethe_db_user:<YOUR_PASSWORD>@campusafe.f8xcdug.mongodb.net/?appName=campuSafe
+   JWT_SECRET=supersecretkey_change_in_production
    ```
 4. Start the backend development server:
    ```bash
@@ -58,7 +59,11 @@ The application adopts a decoupled architecture for deployment:
    ```
 3. Create a `.env` file in the `Frontend/campus-lost-found` directory and configure the API URL:
    ```env
+   # Local development (connects to local backend)
    VITE_API_URL=http://localhost:5000/api
+
+   # Note: When deploying to Render, set VITE_API_URL in Render's Environment settings:
+   # VITE_API_URL=https://campusafe-4gmd.onrender.com/api
    ```
 4. Start the Vite development server:
    ```bash

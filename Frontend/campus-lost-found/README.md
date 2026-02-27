@@ -20,7 +20,7 @@ CampuSafe centralizes this process into a single, intuitive platform. It empower
 ## Deployment
 The application adopts a decoupled architecture for deployment:
 - **Backend**: Deployed as a web service on **Render**, handling API requests, database interactions, and business logic.
-- **Frontend**: Deployed as a static page on platforms like Vercel or Netlify (currently configured for Vercel), providing a fast, responsive user interface.
+- **Frontend**: Deployed as a static page on **Render**, providing a fast, responsive user interface.
 
 ## Installation and Setup
 ### Prerequisites

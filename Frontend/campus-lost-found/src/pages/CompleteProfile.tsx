@@ -80,6 +80,33 @@ const CompleteProfile: React.FC = () => {
                 console.warn("Face crop automated extraction skipped/failed:", faceErr);
             }
 
+            if (finalProfilePhoto === imageUrl) {
+                // Fallback: Compress the full image correctly to Base64 if no face was cropped
+                finalProfilePhoto = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imgObj = new Image();
+                        imgObj.onload = () => {
+                            const maxW = 400; const maxH = 400;
+                            let w = imgObj.width; let h = imgObj.height;
+                            if (w > h) { if (w > maxW) { h *= maxW / w; w = maxW; } }
+                            else { if (h > maxH) { w *= maxH / h; h = maxH; } }
+                            const cvs = document.createElement('canvas');
+                            cvs.width = w; cvs.height = h;
+                            const ctxObj = cvs.getContext('2d');
+                            if (ctxObj) {
+                                ctxObj.fillStyle = "white";
+                                ctxObj.fillRect(0, 0, w, h);
+                                ctxObj.drawImage(imgObj, 0, 0, w, h);
+                            }
+                            resolve(cvs.toDataURL('image/jpeg', 0.8));
+                        };
+                        imgObj.src = e.target?.result as string;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
             setProgress("Enhancing Image for OCR...");
 
             // Create a high-contrast scaled canvas version specifically for Tesseract

@@ -7,6 +7,46 @@ const ItemDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [item, setItem] = useState<DummyItem | null>(null);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [isProcessingClaim, setIsProcessingClaim] = useState(false);
+    const [customPickupLocation, setCustomPickupLocation] = useState("");
+
+    const handleAccept = async () => {
+        if (!item) return;
+        if (!customPickupLocation.trim()) {
+            alert("Please specify a meeting point before accepting the claim.");
+            return;
+        }
+        setIsProcessingClaim(true);
+        try {
+            const code = "PC-" + Math.floor(1000 + Math.random() * 9000);
+            await itemService.updateItemStatus(item.id, {
+                status: "READY_FOR_PICKUP",
+                pickupCode: code,
+                pickupLocation: customPickupLocation.trim()
+            });
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            alert("Failed to accept");
+        } finally {
+            setIsProcessingClaim(false);
+        }
+    };
+
+    const handleReject = async () => {
+        if (!item) return;
+        setIsProcessingClaim(true);
+        try {
+            await itemService.updateItemStatus(item.id, { status: "Posted" });
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            alert("Failed to reject");
+        } finally {
+            setIsProcessingClaim(false);
+        }
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -72,7 +112,7 @@ const ItemDetail: React.FC = () => {
                         <div className="w-full md:w-1/2 flex-shrink-0">
                             <div className="w-full aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 relative group cursor-pointer" onClick={() => {
                                 if (item.image) {
-                                    window.open(item.image, "_blank");
+                                    setIsImageModalOpen(true);
                                 }
                             }}>
                                 {item.image ? (
@@ -154,7 +194,61 @@ const ItemDetail: React.FC = () => {
                             </div>
 
                             <div className="mt-auto pt-6 border-t border-gray-100">
-                                {item.status === 'Posted' ? (
+                                {item.postedBy === localStorage.getItem("currentEmail") ? (
+                                    item.status === 'Claim Pending' ? (
+                                        <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
+                                            <h3 className="text-lg font-bold text-yellow-800 mb-2">Claim Request Received!</h3>
+                                            <p className="text-sm text-yellow-700 mb-3 font-medium">
+                                                Review the claimant's answers and their optional uploaded picture (shown on the left).
+                                            </p>
+                                            <div className="space-y-3 mb-4 text-sm text-yellow-900 bg-yellow-100/50 p-4 rounded-lg">
+                                                <p><strong>Claimant:</strong> {item.claimantName}</p>
+                                                <p><strong>Contact:</strong> {item.claimantEmail} / {item.claimantPhone}</p>
+                                                <div className="mt-2 border-t border-yellow-200 pt-2">
+                                                    {item.secretQuestion1 && <p><strong>Q:</strong> {item.secretQuestion1} <br /><span className="text-gray-700 font-medium whitespace-pre-wrap">A: {item.claimAnswer1}</span></p>}
+                                                    {item.secretQuestion2 && <p className="mt-1"><strong>Q:</strong> {item.secretQuestion2} <br /><span className="text-gray-700 font-medium whitespace-pre-wrap">A: {item.claimAnswer2}</span></p>}
+                                                    {item.secretQuestion3 && <p className="mt-1"><strong>Q:</strong> {item.secretQuestion3} <br /><span className="text-gray-700 font-medium whitespace-pre-wrap">A: {item.claimAnswer3}</span></p>}
+                                                </div>
+                                            </div>
+                                            <div className="mb-4">
+                                                <label htmlFor="pickupLocation" className="block text-sm font-bold text-yellow-900 mb-1">Where should they meet you to get it back?</label>
+                                                <input
+                                                    type="text"
+                                                    id="pickupLocation"
+                                                    value={customPickupLocation}
+                                                    onChange={(e) => setCustomPickupLocation(e.target.value)}
+                                                    className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white placeholder-gray-400 font-medium text-sm"
+                                                    placeholder="e.g. Near Library, Security Office, CA Dept."
+                                                />
+                                                <p className="text-xs text-yellow-700 mt-1">They will be instructed to find you here and tell you their secret Pickup Code.</p>
+                                            </div>
+                                            <div className="flex gap-3 mt-4">
+                                                <button disabled={isProcessingClaim || !customPickupLocation.trim()} onClick={handleAccept} className={`flex-1 text-white font-bold py-3 rounded-lg transition-colors shadow-sm ${(isProcessingClaim || !customPickupLocation.trim()) ? 'bg-green-400 cursor-not-allowed opacity-70' : 'bg-green-600 hover:bg-green-700'}`}>Accept & Share Location</button>
+                                                <button disabled={isProcessingClaim} onClick={handleReject} className={`flex-1 text-white font-bold py-3 rounded-lg transition-colors shadow-sm ${isProcessingClaim ? 'bg-red-400' : 'bg-red-600 hover:bg-red-700'}`}>Reject Claim</button>
+                                            </div>
+                                        </div>
+                                    ) : item.status === 'READY_FOR_PICKUP' ? (
+                                        <div className="bg-green-50 p-6 rounded-xl border border-green-200">
+                                            <h3 className="text-xl font-bold text-green-800 mb-3">Steps to Return Item</h3>
+                                            <ol className="list-decimal list-inside space-y-2 text-sm text-green-900 mb-4 bg-green-100/50 p-4 rounded-lg font-medium">
+                                                <li>Take the item to the location you specified: <strong className="text-green-800">{item.pickupLocation}</strong>.</li>
+                                                <li>Wait for the claimant: <strong className="text-green-800">{item.claimantName}</strong>.</li>
+                                                <li>Ask them for their 4-digit generated Pickup Code.</li>
+                                                <li>Verify it matches the code shown below!</li>
+                                            </ol>
+                                            <div className="flex flex-col items-center justify-center bg-white py-3 px-4 rounded-lg shadow-sm w-full max-w-xs mx-auto mb-3 border border-green-100">
+                                                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Verify Their Code</span>
+                                                <span className="text-4xl tracking-widest font-black text-gray-900">{item.pickupCode}</span>
+                                            </div>
+                                            <p className="text-xs text-green-700 font-bold uppercase text-center mt-2 border-t border-green-200 pt-3">Thank you for keeping our campus safe!</p>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-gray-100 p-4 rounded-xl border border-gray-200 text-center">
+                                            <h3 className="text-sm font-bold text-gray-800">You reported this item</h3>
+                                            <p className="text-gray-600 text-xs mt-1">Status: {item.status}. You cannot claim your own reported item.</p>
+                                        </div>
+                                    )
+                                ) : item.status === 'Posted' ? (
                                     <button
                                         onClick={() => navigate(`/claim-item/${item.id}`)}
                                         className="w-full flex items-center justify-center py-4 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -166,13 +260,13 @@ const ItemDetail: React.FC = () => {
                                     </button>
                                 ) : item.status === 'READY_FOR_PICKUP' ? (
                                     <div className="bg-green-50 p-6 rounded-xl border border-green-200 text-center">
-                                        <h3 className="text-xl font-bold text-green-800 mb-2">Ready for Pickup!</h3>
-                                        <p className="text-green-700 mb-4 font-medium text-sm">Your claim was approved. Present this code at the Security Office to return.</p>
+                                        <h3 className="text-xl font-bold text-green-800 mb-2">Ready to Get It Back!</h3>
+                                        <p className="text-green-700 mb-4 font-medium text-sm">Your claim was approved. Go to the location below and present your code.</p>
                                         <div className="flex flex-col items-center justify-center bg-white py-3 px-4 rounded-lg shadow-sm w-full max-w-xs mx-auto mb-3 border border-green-100">
-                                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Pickup Code</span>
+                                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Your Pickup Code</span>
                                             <span className="text-4xl tracking-widest font-black text-gray-900">{item.pickupCode}</span>
                                         </div>
-                                        <p className="text-xs text-green-600 font-bold uppercase tracking-wide">Pickup Location: {item.pickupLocation || 'Security Office'}</p>
+                                        <p className="text-sm text-green-800 font-bold px-4 py-2 border border-green-200 bg-green-100/50 rounded-lg inline-block">Meeting Point: {item.pickupLocation}</p>
                                     </div>
                                 ) : (
                                     <div className="text-center py-4 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 flex items-center justify-center">
@@ -187,6 +281,29 @@ const ItemDetail: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Full Screen Image Modal */}
+            {isImageModalOpen && item.image && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+                    onClick={() => setIsImageModalOpen(false)}
+                >
+                    <button
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 p-2"
+                        onClick={() => setIsImageModalOpen(false)}
+                    >
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <img
+                        src={item.image}
+                        alt={item.name}
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                        onClick={(e) => e.stopPropagation()} // Prevent clicking image from closing modal
+                    />
+                </div>
+            )}
         </div>
     );
 };

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { userService } from '../services/userService';
+import type { UserProfile } from '../types/user';
 
 const Nav: React.FC = () => {
     const navigate = useNavigate();
@@ -7,7 +9,24 @@ const Nav: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const lastScrollY = React.useRef(0);
+
+    // Fetch user profile on mount / route change
+    useEffect(() => {
+        const fetchUser = async () => {
+            const currentEmail = localStorage.getItem("currentEmail");
+            if (currentEmail && location.pathname !== '/' && location.pathname !== '/complete-profile') {
+                try {
+                    const profile = await userService.getProfile(currentEmail);
+                    setUserProfile(profile);
+                } catch (error) {
+                    console.error("Failed to fetch user profile for Nav", error);
+                }
+            }
+        };
+        fetchUser();
+    }, [location.pathname]);
 
     // Add subtle glassmorphism effect and hide/show logic when scrolling
     useEffect(() => {
@@ -54,10 +73,10 @@ const Nav: React.FC = () => {
         <React.Fragment>
             {/* Elegant Floating Navigation Bar */}
             <nav className={`fixed top-4 left-0 right-0 z-50 mx-auto max-w-5xl px-4 sm:px-6 transition-all duration-300 ease-in-out ${mobileMenuOpen
-                    ? 'opacity-0 scale-95 pointer-events-none'
-                    : isVisible
-                        ? 'translate-y-0 opacity-100 scale-100'
-                        : '-translate-y-24 opacity-0 pointer-events-none'
+                ? 'opacity-0 scale-95 pointer-events-none'
+                : isVisible
+                    ? 'translate-y-0 opacity-100 scale-100'
+                    : '-translate-y-24 opacity-0 pointer-events-none'
                 }`}>
                 <div
                     className={`relative mx-auto rounded-full transition-all duration-500 flex items-center justify-between px-6 py-3
@@ -119,9 +138,15 @@ const Nav: React.FC = () => {
                             className="w-10 h-10 rounded-full border-2 border-transparent hover:border-blue-100 transition-colors bg-gradient-to-tr from-gray-100 to-gray-50 flex items-center justify-center overflow-hidden"
                             title="Profile"
                         >
-                            <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                            </svg>
+                            {userProfile?.profilePhoto ? (
+                                <img src={userProfile.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                            ) : userProfile?.name ? (
+                                <span className="text-sm font-bold text-gray-700">{userProfile.name.charAt(0).toUpperCase()}</span>
+                            ) : (
+                                <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                            )}
                         </button>
                     </div>
 
@@ -153,9 +178,28 @@ const Nav: React.FC = () => {
                 </button>
 
                 <div className="flex flex-col items-center justify-center gap-8 w-full px-8">
-                    <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 mb-4">
-                        CampuSafe
-                    </span>
+                    {userProfile ? (
+                        <div className="flex flex-col items-center gap-3 mb-2">
+                            <div className="w-20 h-20 rounded-full border-4 border-gray-100 shadow-sm overflow-hidden bg-gray-50 flex items-center justify-center">
+                                {userProfile.profilePhoto ? (
+                                    <img src={userProfile.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                                ) : userProfile.name ? (
+                                    <span className="text-2xl font-bold text-gray-700">{userProfile.name.charAt(0).toUpperCase()}</span>
+                                ) : (
+                                    <svg className="w-10 h-10 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                    </svg>
+                                )}
+                            </div>
+                            <span className="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                                {userProfile?.name ? `Hi, ${userProfile.name.split(' ')[0]}!` : 'CampuSafe'}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 mb-4">
+                            CampuSafe
+                        </span>
+                    )}
 
                     <button
                         onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}

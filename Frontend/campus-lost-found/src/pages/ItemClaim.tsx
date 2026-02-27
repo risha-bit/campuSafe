@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { DummyItem } from './Dash';
 import { itemService } from '../services/itemServ';
@@ -8,6 +8,9 @@ const ItemClaim: React.FC = () => {
     const navigate = useNavigate();
     const [item, setItem] = useState<DummyItem | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
+    const [base64Image, setBase64Image] = useState<string | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -39,6 +42,68 @@ const ItemClaim: React.FC = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const compressImage = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    resolve(dataUrl);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            setFileName(file.name);
+
+            try {
+                const compressedBase64 = await compressImage(file);
+                setBase64Image(compressedBase64);
+            } catch (err) {
+                console.error("Image compression failed", err);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setBase64Image(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    };
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -53,6 +118,7 @@ const ItemClaim: React.FC = () => {
                 claimAnswer1: formData.answer1,
                 claimAnswer2: formData.answer2,
                 claimAnswer3: formData.answer3,
+                ...(base64Image && { image: base64Image })
             });
             console.log('Claim Submitted:', formData);
             navigate('/dashboard');
@@ -221,6 +287,47 @@ const ItemClaim: React.FC = () => {
                                     value={formData.contactEmail}
                                     onChange={handleChange}
                                 />
+                            </div>
+                        </div>
+
+                        {/* Image Upload Area */}
+                        <div className="space-y-4 pt-4 border-t border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-800 pb-1">3. Additional Proof (Optional)</h2>
+                            <p className="text-sm text-gray-500 mb-2">
+                                If you have an old picture of the item (e.g., yourself holding it), you can upload it to strengthen your claim.
+                            </p>
+                            <div>
+                                <div
+                                    onClick={handleUploadClick}
+                                    className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group"
+                                >
+                                    <div className="space-y-1 text-center">
+                                        <svg className="mx-auto h-12 w-12 text-gray-400 group-hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        <div className="flex flex-col text-sm text-gray-600 justify-center items-center gap-2">
+                                            {base64Image && (
+                                                <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-200 mb-2">
+                                                    <img src={base64Image} alt="Preview" className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                            <span className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none flex gap-1 items-center">
+                                                {fileName ? <span className="text-gray-800 font-semibold">{fileName}</span> : "Upload a photo (optional)"}
+                                            </span>
+                                            <input
+                                                id="file-upload"
+                                                name="file-upload"
+                                                type="file"
+                                                className="sr-only"
+                                                accept="image/*"
+                                                capture="environment"
+                                                ref={fileInputRef}
+                                                onChange={handleFileChange}
+                                            />
+                                        </div>
+                                        {!fileName && <p className="text-xs text-gray-500 mt-1">Tap/click to open camera or gallery</p>}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

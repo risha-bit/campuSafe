@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { itemService } from '../services/itemServ';
 
 const PostItem: React.FC = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -23,31 +22,10 @@ const PostItem: React.FC = () => {
         secretAnswer3: '',
     });
 
-    const [fileName, setFileName] = useState<string | null>(null);
-    const [base64Image, setBase64Image] = useState<string | null>(null);
-
     // Handle Input Changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev: any) => ({ ...prev, [name]: value }));
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const file = e.target.files[0];
-            setFileName(file.name);
-
-            // Convert to Base64
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setBase64Image(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleUploadClick = () => {
-        fileInputRef.current?.click();
     };
 
     // Handle Form Submission
@@ -70,13 +48,12 @@ const PostItem: React.FC = () => {
             secretAnswer2: formData.secretAnswer2,
             secretQuestion3: formData.secretQuestion3,
             secretAnswer3: formData.secretAnswer3,
-            postedBy: currentEmail,
-            ...(base64Image && { image: base64Image })
+            postedBy: currentEmail
         };
 
         try {
             await itemService.createItem(newItem);
-            console.log('API Form Submitted:', formData, 'File uploaded:', fileName);
+            console.log('API Form Submitted:', formData);
             navigate('/dashboard'); // Go back to dashboard after submitting
         } catch (error) {
             console.error(error);
@@ -167,6 +144,7 @@ const PostItem: React.FC = () => {
                                         id="dateFound"
                                         name="dateFound"
                                         required
+                                        max={new Date().toISOString().split('T')[0]}
                                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
                                         value={formData.dateFound}
                                         onChange={handleChange}
@@ -195,47 +173,11 @@ const PostItem: React.FC = () => {
                                     name="description"
                                     required
                                     rows={3}
-                                    placeholder="Describe the item's appearance, brand, or any distinct marks."
+                                    placeholder="Describe where and how you found the item. Do NOT vomit identifying characteristics of the item itself!"
                                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm resize-y"
                                     value={formData.description}
                                     onChange={handleChange}
                                 />
-                            </div>
-
-                            {/* Image Upload Area */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Upload Image <span className="text-red-500">*</span></label>
-                                <div
-                                    onClick={handleUploadClick}
-                                    className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group"
-                                >
-                                    <div className="space-y-1 text-center">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400 group-hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                        <div className="flex flex-col text-sm text-gray-600 justify-center items-center gap-2">
-                                            {base64Image && (
-                                                <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-200 mb-2">
-                                                    <img src={base64Image} alt="Preview" className="w-full h-full object-cover" />
-                                                </div>
-                                            )}
-                                            <span className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none flex gap-1 items-center">
-                                                {fileName ? <span className="text-gray-800 font-semibold">{fileName}</span> : "Upload a file or take photo"}
-                                            </span>
-                                            <input
-                                                id="file-upload"
-                                                name="file-upload"
-                                                type="file"
-                                                className="sr-only"
-                                                accept="image/*"
-                                                capture="environment"
-                                                ref={fileInputRef}
-                                                onChange={handleFileChange}
-                                            />
-                                        </div>
-                                        {!fileName && <p className="text-xs text-gray-500 mt-1">Tap/click to open camera or gallery</p>}
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

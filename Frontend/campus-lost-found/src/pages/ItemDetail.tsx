@@ -7,6 +7,7 @@ const ItemDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [item, setItem] = useState<DummyItem | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [isProcessingClaim, setIsProcessingClaim] = useState(false);
     const [customPickupLocation, setCustomPickupLocation] = useState("");
@@ -49,11 +50,29 @@ const ItemDetail: React.FC = () => {
     };
 
     useEffect(() => {
-        if (!id) return;
+        if (!id) {
+            setIsLoading(false);
+            return;
+        }
+        setIsLoading(true);
         itemService.getItemById(id)
-            .then(foundItem => setItem(foundItem))
-            .catch(error => console.error("Item not found", error));
+            .then(foundItem => {
+                setItem(foundItem);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error("Item not found", error);
+                setIsLoading(false);
+            });
     }, [id]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center font-sans">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
 
     if (!item) {
         return (

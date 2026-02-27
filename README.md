@@ -124,6 +124,12 @@ npm run dev
 To modernize and secure the traditional lost and found process within campuses by building a scalable, verified, and community-driven digital solution.
 
 ---
+
+## Screenshots
+
+You can view application screenshots and test files (such as sample ID cards and lost items) in the [`screenshot/`](./screenshot) directory of this repository!
+
+---
 ##  DEPLOYEMENT
 - FRONTEND (STATIC WEBSITE): https://campusafe-4gmd.onrender.com/ 
 - BACKEND( WEB SERVICE):https://campusafe.onrender.com/

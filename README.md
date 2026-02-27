@@ -124,15 +124,6 @@ npm run dev
 To modernize and secure the traditional lost and found process within campuses by building a scalable, verified, and community-driven digital solution.
 
 ---
-
-##  Future Improvements
-
-- AI-based matching between lost and found posts  
-- Real-time notifications  
-- Admin moderation panel  
-- Multi-campus scalability  
-
----
 ##  DEPLOYEMENT
 - FRONTEND (STATIC WEBSITE): https://campusafe-4gmd.onrender.com/ 
 - BACKEND( WEB SERVICE):https://campusafe.onrender.com/

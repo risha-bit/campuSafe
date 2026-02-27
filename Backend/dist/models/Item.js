@@ -61,7 +61,9 @@ const itemSchema = new mongoose_1.Schema({
     claimAnswer3: { type: String },
     // Pickup
     pickupCode: { type: String },
+    pickupLocation: { type: String },
     // Reference to Finder/Poster
-    postedBy: { type: String }
+    postedBy: { type: String },
+    image: { type: String }
 }, { timestamps: true });
 exports.default = mongoose_1.default.model('Item', itemSchema);

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
+// import { MongoMemoryServer } from 'mongodb-memory-server';
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const items_1 = __importDefault(require("./routes/items"));
@@ -13,7 +14,8 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+app.use(express_1.default.json({ limit: '50mb' }));
+app.use(express_1.default.urlencoded({ limit: '50mb', extended: true }));
 // Routes
 app.use('/api/items', items_1.default);
 app.use('/api/users', users_1.default);
@@ -24,10 +26,23 @@ app.get('/', (req, res) => {
 // MongoDB Connection
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/campusafe';
-mongoose_1.default
-    .connect(MONGO_URI)
-    .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-})
-    .catch((error) => console.error('MongoDB connection error:', error));
+const startServer = async () => {
+    try {
+        let uri = MONGO_URI;
+        if (uri.includes('127.0.0.1') || uri.includes('localhost')) {
+            console.log('Skipping MongoMemoryServer (broken DNS on proxy). Using local URI directly.');
+        }
+        await mongoose_1.default.connect(uri, { serverSelectionTimeoutMS: 5000 });
+        console.log('Connected to MongoDB');
+    }
+    catch (error) {
+        console.error('\n=======================================');
+        console.error('⚠️ MongoDB connection failed!');
+        console.error('The rest of the app will run in offline/mock mode for testing.');
+        console.error('=======================================\n');
+    }
+    finally {
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    }
+};
+startServer();

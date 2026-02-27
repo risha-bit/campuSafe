@@ -1,75 +1,75 @@
-# React + TypeScript + Vite
+# CampuSafe
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Why CampuSafe
+CampuSafe was born out of the need to streamline the process of reporting, finding, and claiming lost items within a college campus. Traditional lost and found systems are often fragmented, relying on word of mouth, scattered WhatsApp groups, or poorly maintained physical logs. This leads to low recovery rates and frustrated students. 
 
-Currently, two official plugins are available:
+CampuSafe centralizes this process into a single, intuitive platform. It empowers students to quickly report items they've found or lost, providing a transparent and efficient way to reunify belongings with their rightful owners. By leveraging a centralized system, CampuSafe fosters a stronger, more helpful campus community.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Key Features
+- **Centralized Lost & Found Feed**: A real-time, easily searchable feed of all items reported lost or found on campus.
+- **Reporting System**: Users can easily report new found or lost items with descriptions, images, and locations.
+- **Claiming Process Flow**: A structured system for claiming items, allowing the finder to provide specific return instructions and pickup locations.
+- **OCR ID Verification**: Automated extraction of student details from ID cards to ensure secure and verified user profiles.
+- **User Profiles**: Personalized profiles to track a user's reported items and claim history.
 
-## React Compiler
+## Technology Stack
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB (Mongoose)
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Deployment
+The application adopts a decoupled architecture for deployment:
+- **Backend**: Deployed as a web service on **Render**, handling API requests, database interactions, and business logic.
+- **Frontend**: Deployed as a static page on platforms like Vercel or Netlify (currently configured for Vercel), providing a fast, responsive user interface.
 
-Note: This will impact Vite dev & build performances.
+## Installation and Setup
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- MongoDB instance (local or Atlas)
+- Git
 
-## Expanding the ESLint configuration
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd Backend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in the `Backend` directory and add the necessary environment variables:
+   ```env
+   PORT=5000
+   MONGO_URI=mongodb://localhost:27017/campusafe # Or your MongoDB Atlas URI
+   ```
+4. Start the backend development server:
+   ```bash
+   npm run dev
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd Frontend/campus-lost-found
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in the `Frontend/campus-lost-found` directory and configure the API URL:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   ```
+4. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Verification Criteria
+To verify the system is running correctly:
+1. **Application Load**: Access the frontend application URL; the login or home page should load successfully without console errors.
+2. **API Communication**: The frontend clearly communicates with the backend (e.g., fetching the feed of items).
+3. **Login functionality**: Users should be able to authenticate.
+4. **Post Creation**: A user should successfully post a new finding or lost item, and it should immediately appear on the feed.
+5. **Claiming Flow**: A user can click "Claim" on an item, and follow the flow to receive instructions from the poster. 
+6. **Backend Health**: Accessing the root API endpoint (e.g., `http://localhost:5000/`) should return a confirming message like "CampuSafe API is running".
